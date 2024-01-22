@@ -1,9 +1,11 @@
 //@ts-nocheck
 import React, { useState, useEffect } from 'react';
 
-export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig }) {
-    const [isDragging, setIsDragging] = useState(false);
-    const [initialTouch, setInitialTouch] = useState(0);
+export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, cc }) {
+    const [isDragging, setIsDragging] = useState<false>(false);
+    const [initialTouch, setInitialTouch] = useState<number>(0);
+    const [hovering, setHovering] = useState<boolean>(false)
+    const [midicc, setMidiCC] = useState<boolean>(false)
 
     const handleMouseDown = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -58,8 +60,18 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
 
         // Limit pitch to the range of 0 to 127
         newVal = Math.min(52, Math.max(36, newVal));
-
+        console.log(e.deltaY)
         handlePitch(id, newVal);
+    };
+
+    const handleCCWheel = (e) => {
+        // Adjust pitch based on the wheel delta
+        console.log(cc)
+        let newVal = cc - e.deltaY / 100; // You can adjust the division factor for sensitivity
+
+        // Limit pitch to the range of 0 to 127
+        newVal = Math.min(127, Math.max(0, newVal));
+        handleCC(id, newVal);
     };
 
     const calculateBackgroundColor = (pitch) => {
@@ -70,19 +82,35 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
 
     return (
         <>
-            <div className="flex flex-col">
+            <div className="flex flex-col"
+                onMouseOver={() => setHovering(true)}
+                onMouseLeave={() => setHovering(false)}>
                 <div
                     onClick={handleClick}
-                    className={(currentTrig === id ? 'bg-white' : trig ? 'bg-[#a4d678]' : 'bg-black') + ' w-10 h-14 rounded-md'}>
+                    className={(currentTrig === id ? 'bg-white' : trig ? 'bg-[#82d9b9]' : 'bg-black') + ' w-10 h-14 rounded-md'}>
                 </div>
                 {trig && <div
                     onMouseDown={handleMouseDown}
                     onWheel={handleWheel}
                     style={{ backgroundColor: calculateBackgroundColor(pitch) }}
-                    className="flex flex-col items-center justify-center select-none w-10 h-14  text-black font-extrabold rounded-md mt-2">
+                    className="flex flex-col items-center justify-center select-none w-10 h-14  text-black font-extrabold rounded-md mt-2 hover:h-20">
                     {pitch}
                 </div>}
-                {/* {trig && <div className="w-10 h-14 bg-green-300 rounded-md mt-2"></div>} */}
+                {midicc && <div
+                    onWheel={handleCCWheel}
+                    style={{ backgroundColor: calculateBackgroundColor(cc) }}
+                    className="flex flex-col items-center justify-center select-none w-10 h-14  text-black font-extrabold rounded-[15px] mt-2 hover:h-20">
+                    {cc}
+                </div>}
+                {hovering && <div
+                    onClick={()=>{setMidiCC(!midicc)}}
+                    style={{ backgroundColor: calculateBackgroundColor(pitch) }}
+                    className="w-10 h-10 flex flex-col items-center justify-center select-none  rounded-lg mt-2 p-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={4} stroke="black" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+
+                </div>}
             </div>
         </>
     );
