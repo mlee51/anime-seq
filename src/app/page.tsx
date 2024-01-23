@@ -156,11 +156,11 @@ export default function Home() {
   return (
     <Suspense>
       <div className="fixed w-full font-extrabold text-3xl select-none inline">
-        <div className="fixed bottom-20 left-1/2 transform text-[2rem] -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
+        <div className="fixed bottom-20 left-1/2 transform text-[2rem] -translate-x-1/2 -translate-y-1/2 opacity-30 pointer-events-none">
           {running ? <Image width={200} src={pauseIcon} alt="pause" /> : <Image width={200} src={playIcon} alt="play" />}
         </div>
         <div
-          className="fixed top-10 left-1/2 transform text-[2rem] -translate-x-1/2 -translate-y-1/2 opacity-20 text-black"
+          className="fixed top-10 left-1/2 transform text-[2rem] -translate-x-1/2 -translate-y-1/2 opacity-40 text-black"
           onWheel={handleBpmWheel}>
           {bpm}
         </div>
