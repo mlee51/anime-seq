@@ -71,7 +71,7 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
     const calculateBackgroundColor = (pitch) => {
         // Map pitch to a color based on your specific criteria
         const hue = Math.round((pitch - 36) / (52 - 36) * 360); // Example mapping to the hue scale
-        return `hsl(${hue}, 90%, 65%)`; // Construct an HSL color based on the hue
+        return `hsl(${hue}, 85%, 64%)`; // Construct an HSL color based on the hue
     };
 
     return (
@@ -81,13 +81,13 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                 onMouseLeave={() => setHovering(false)}>
                 <div
                     onClick={handleClick}
-                    className={(currentTrig === id ? 'bg-white' : trig ? 'bg-amber-200' : 'bg-black') + ' w-10 h-14 rounded-md hover:bg-amber-100'}>
+                    className={(currentTrig === id ? 'bg-[#60d68d]' : trig ? 'bg-[#e6e6e6]' : 'bg-[#0d0d0d]') + ' w-10 h-14 rounded-md hover:bg-[#f83573]'}>
                 </div>
                 {trig && <div
                     onMouseDown={handleMouseDown}
                     onWheel={handleWheel}
                     style={{ backgroundColor: calculateBackgroundColor(pitch) }}
-                    className="flex flex-col items-center justify-center select-none w-10 h-14  text-black font-extrabold rounded-md mt-2 hover:h-20">
+                    className="flex flex-col items-center justify-center select-none w-10 h-14  text-[#1f1f1f] font-extrabold rounded-md mt-2 hover:h-20">
                     {pitch}
                 </div>}
                 {cc.on && <div

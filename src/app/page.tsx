@@ -166,7 +166,7 @@ export default function Home() {
         </div>
       </div>
       <div>
-        <main onClick={handleRunning} className="flex flex-row items-start justify-around pl-24 pr-24 pt-[12rem] bg-[#10191f] h-screen">{/*bg-[#10191f]*/}
+        <main onClick={handleRunning} className="flex flex-row items-start justify-around pl-24 pr-24 pt-[12rem] bg-[#21252a] h-screen">{/*bg-[#10191f]*/}
           <button onClick={shiftTrigsLeft} className="h-14 mr-4">
           <Image src={leftIcon} alt="Shift Left" />
           </button>
