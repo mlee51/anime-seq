@@ -11,25 +11,34 @@ import leftIcon from '../../public/icons/leftarrow.svg'
 import rightIcon from '../../public/icons/rightarrow.svg'
 
 export default function Home() {
+  const [devices, setDevices] = useState(null)
+  const [midiDevice, setMidiDevice] = useState(null)
   const [channel, setChannel] = useState<any>(null);
   const [output, setOutput] = useState<any>(null);
   const [running, setRunning] = useState<boolean>(false);
-  const [trigs, setTrigs] = useState(Array(16).fill({ on: false, pitch: 36, cc: { on: false, val: null } }));
+  const [trigs, setTrigs] = useState(Array(16).fill({ on: false, pitch: 36, duration: 1, cc: { on: false, val: null } }));
   const [currentTrig, setCurrentTrig] = useState<number>(0)
   const trigsRef = useRef(trigs);
   const currentTrigRef = useRef(currentTrig)
   const [bpm, setBpm] = useState<number>(120)
   const loopTime = useRef(60000 / bpm / 4)
+  const lastPitch = useRef(null)
 
   useEffect(() => {
+    WebMidi.defaults.attack = 1
+    WebMidi.defaults.release = 1
     WebMidi.enable(onEnabled)
       .then(() => console.log("WebMidi enabled!"))
       .catch((err) => alert(err))
       .finally(() => {
-        setOutput(WebMidi.outputs[0])
-        setChannel(WebMidi.outputs[0].channels[1])
+       if(WebMidi.outputs.length)setMidiDevice(WebMidi.outputs[0])
       });
   }, []);
+
+  useEffect(()=>{
+    setOutput(midiDevice)
+    setChannel(midiDevice?.channels[1])
+  },[midiDevice])
 
   useEffect(() => {
     loopTime.current = 60000 / bpm / 4
@@ -40,23 +49,21 @@ export default function Home() {
   }, [trigs]);
 
   useEffect(() => {
-    currentTrigRef.current = currentTrig
-    playNotes()
+    if(currentTrigRef.current!==-1)playNotes()
   }, [currentTrigRef.current])
 
   useEffect(() => {
     let lightsInterval: NodeJS.Timeout
     if (running) {
-      playNotes()
-      currentTrigRef.current = (currentTrigRef.current + 1) % 16
-      setCurrentTrig((prevCount) => (prevCount + 1) % 16)
       lightsInterval = setInterval(() => {
         currentTrigRef.current = (currentTrigRef.current + 1) % 16
         setCurrentTrig((prevCount) => (prevCount + 1) % 16);
       }, loopTime.current);
+      setCurrentTrig((prevCount) => (prevCount + 1) % 16)
+      currentTrigRef.current = (currentTrigRef.current + 1) % 16
     } else {
       setCurrentTrig(0)
-      currentTrigRef.current = 0
+      currentTrigRef.current = -1
     }
 
     return () => {
@@ -76,6 +83,14 @@ export default function Home() {
     setTrigs((prevStates) => {
       const newTrigStates = [...prevStates];
       newTrigStates[id] = { ...newTrigStates[id], pitch: parseInt(e) }
+      return newTrigStates;
+    });
+  }
+
+  const handleDuration = (id: number, newDuration: number) => {
+    setTrigs((prevStates) => {
+      const newTrigStates = [...prevStates];
+      newTrigStates[id] = { ...newTrigStates[id], duration: newDuration }
       return newTrigStates;
     });
   }
@@ -135,15 +150,17 @@ export default function Home() {
   const onEnabled = () => {
     WebMidi.inputs.forEach((input) => console.log(input.manufacturer, input.name));
     WebMidi.outputs.forEach((output) => console.log(output.manufacturer, output.name));
+    setDevices(WebMidi.outputs)
   };
 
   const playNotes = () => {
-    const { pitch, on, cc } = trigsRef.current[currentTrigRef.current]
+    const { pitch, on, cc, duration } = trigsRef.current[currentTrigRef.current]
     if (on) {
-      channel.playNote(pitch, { time: WebMidi.time, duration: loopTime.current })
+      channel?.playNote(pitch, { time: WebMidi.time, duration: loopTime.current * duration, attack: WebMidi.defaults.attack, release: WebMidi.defaults.release })
+      lastPitch.current = pitch
     }
     if (cc.val != null) {
-      channel.sendControlChange(127, cc.val)
+      channel?.sendControlChange(127, cc.val)
     }
   }
 
@@ -155,20 +172,28 @@ export default function Home() {
 
   return (
     <Suspense>
-      <div className="fixed w-full font-extrabold text-3xl select-none inline">
-        <div className="fixed bottom-20 left-1/2 transform text-[2rem] -translate-x-1/2 -translate-y-1/2 opacity-30 pointer-events-none">
-          {running ? <Image width={200} src={pauseIcon} alt="pause" /> : <Image width={200} src={playIcon} alt="play" />}
-        </div>
+      <select
+        className="text-off fixed right-0 text-3xl rounded-md m-2 bg-background focus:outline-none"
+        name="devices"
+        id="devices"
+        title="Select MIDI Device"
+        defaultValue={1}
+        onChange={e => setMidiDevice(devices[e.target.selectedIndex])}>
+        {devices?.map((device, index) => (
+          <option key={index} value={device}>{device.name}</option>
+        ))}
+      </select>
+      <h1 className="fixed text-3xl bottom-0 font-extrabold m-4 text-off">CLAY | midi sequencer</h1>
+      <div onClick={handleRunning} className="min-h-screen flex flex-col items-center bg-background">
         <div
-          className="fixed top-10 left-1/2 transform text-[2rem] -translate-x-1/2 -translate-y-1/2 opacity-40 text-black"
+          title='Scroll to change BPM'
+          className="top-10  text-[#636e72] font-extrabold text-4xl my-4 p-4 select-none hover:text-trig"
           onWheel={handleBpmWheel}>
           {bpm}
         </div>
-      </div>
-      <div>
-        <main onClick={handleRunning} className="flex flex-row items-start justify-around pl-24 pr-24 pt-[12rem] bg-[#21252a] h-screen">{/*bg-[#10191f]*/}
-          <button onClick={shiftTrigsLeft} className="h-14 mr-4">
-          <Image src={leftIcon} alt="Shift Left" />
+        <main onClick={handleRunning} className="flex flex-row items-start justify-around pl-24 pr-24  pt-12 pb-12 rounded-3xl grow">{/*bg-[#10191f]*/}
+          <button onClick={shiftTrigsLeft} className="h-14 mr-1 select-none">
+            <Image src={leftIcon} alt="Shift Left" />
           </button>
           {trigs.map((_, index) => (
             <Trig
@@ -177,16 +202,21 @@ export default function Home() {
               handlePitch={handlePitch}
               handleCC={handleCC}
               handleCCOn={handleCCOn}
+              handleDuration={handleDuration}
+              duration={trigs[index].duration}
               pitch={trigs[index].pitch}
               cc={trigs[index].cc}
               id={index} trig={trigs[index].on}
               currentTrig={currentTrig}
             />
           ))}
-          <button onClick={shiftTrigsRight} className="h-14 ml-4">
+          <button onClick={shiftTrigsRight} className="h-14 ml-1 select-none">
             <Image src={rightIcon} alt="Shift Right" />
           </button>
         </main >
+        <div className="pointer-events-none justify-between mb-10 select-none">
+          {running ? <Image width={200} src={pauseIcon} alt="pause" /> : <Image width={200} src={playIcon} alt="play" />}
+        </div>
       </div>
     </Suspense>
   );

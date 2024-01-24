@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import plusIcon from '../../public/icons/plus.svg'
 
-export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, cc, handleCCOn }) {
+export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, cc, handleCCOn, handleDuration, duration }) {
     const [isDragging, setIsDragging] = useState<false>(false);
     const [initialTouch, setInitialTouch] = useState<number>(0);
     const [hovering, setHovering] = useState<boolean>(false)
@@ -58,8 +58,13 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
     const handleWheel = (e) => {
         let newVal = pitch - e.deltaY / 100; 
         newVal = Math.min(127, Math.max(0, newVal));
-        console.log(e.deltaY)
         handlePitch(id, newVal);
+    };
+
+    const handleDurationWheel = (e) => {
+        let newVal = duration - e.deltaY / 100; 
+        newVal = Math.min(16, Math.max(1, newVal));
+        handleDuration(id,newVal)
     };
 
     const handleCCWheel = (e) => {
@@ -70,8 +75,8 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
 
     const calculateBackgroundColor = (pitch) => {
         // Map pitch to a color based on your specific criteria
-        const hue = Math.round((pitch - 36) / (52 - 36) * 360); // Example mapping to the hue scale
-        return `hsl(${hue}, 85%, 64%)`; // Construct an HSL color based on the hue
+        const hue = Math.round((pitch) / (127*0.3) * 360); // Example mapping to the hue scale
+        return `hsl(${hue}, 85%, 68%)`; // Construct an HSL color based on the hue
     };
 
     return (
@@ -81,34 +86,33 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                 onMouseLeave={() => setHovering(false)}>
                 <div
                     onClick={handleClick}
-                    className={(currentTrig === id ? 'bg-[#60d68d]' : trig ? 'bg-[#e6e6e6]' : 'bg-[#0d0d0d]') + ' w-10 h-14 rounded-md hover:bg-[#f83573]'}>
+                    className={(currentTrig === id ? 'bg-current' : trig ? 'bg-trig' : 'bg-off') + ' w-14 h-14 rounded-md hover:bg-highlight'}>
                 </div>
                 {trig && <div
-                    onMouseDown={handleMouseDown}
-                    onWheel={handleWheel}
                     style={{ backgroundColor: calculateBackgroundColor(pitch) }}
-                    className="flex flex-col items-center justify-center select-none w-10 h-14  text-[#1f1f1f] font-extrabold rounded-md mt-2 hover:h-20">
-                    {pitch}
+                    className="select-none w-14 h-14 relative text-off font-extrabold rounded-md mt-2 hover:border">
+                        <div onWheel={handleDurationWheel} className='absolute pr-1 pt-1 right-0 text-xs'>{duration}</div>
+                    <div className='flex h-full justify-center items-center' onWheel={handleWheel}>{pitch}</div>
                 </div>}
                 {cc.on && <div
                     style={{ backgroundColor: calculateBackgroundColor(cc.val) }}
-                    className='mt-2 rounded-b-[15px] rounded-t-sm'>
+                    className='mt-2 rounded-[15px] rounded-t-md  hover:border'>
                     <div
                         onClick={() => { handleCCOn(id, !cc.on) }}
-                        className='text-sm text-black font-semibold text-center w-10 h-4 select-none hover:opacity-30'
+                        className='text-sm mx-auto text-off font-semibold text-center w-10 h-6 select-none  hover:opacity-20 py-1'
                         title="Delete"
                     >
                         127
                     </div>
                     <div
                         onWheel={handleCCWheel}
-                        className="flex flex-col items-center justify-center select-none w-10 h-10  text-black font-extrabold   hover:h-12">
+                        className="flex flex-col mx-auto items-center justify-center select-none w-10 h-8  text-off font-extrabold ">
                         {cc.val}
                     </div>
                 </div>}
                 {hovering && <div
                     onClick={() => { handleCCOn(id, !cc.on) }}
-                    className="w-10 h-10 flex flex-col items-center justify-center select-none rounded-lg mt-2 p-4 bg-black opacity-50">
+                    className="w-10 h-10 mx-auto select-none rounded-lg mt-2 p-4 bg-off opacity-25">
                     <Image src={plusIcon} alt="pause"/>
                 </div>}
             </div>
