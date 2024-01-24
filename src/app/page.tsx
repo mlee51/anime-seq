@@ -24,6 +24,12 @@ export default function Home() {
   const loopTime = useRef(60000 / bpm / 4)
   const lastPitch = useRef(null)
 
+  const handleKeyPress = (event) => {
+    if (event.code === "Space") {
+      setRunning((prev) => !prev)
+    }
+  };
+
   useEffect(() => {
     WebMidi.defaults.attack = 1
     WebMidi.defaults.release = 1
@@ -31,14 +37,20 @@ export default function Home() {
       .then(() => console.log("WebMidi enabled!"))
       .catch((err) => alert(err))
       .finally(() => {
-       if(WebMidi.outputs.length)setMidiDevice(WebMidi.outputs[0])
+        if (WebMidi.outputs.length) setMidiDevice(WebMidi.outputs[0])
       });
+
+    window.addEventListener("keydown", handleKeyPress, true);
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
   }, []);
 
-  useEffect(()=>{
+
+  useEffect(() => {
     setOutput(midiDevice)
     setChannel(midiDevice?.channels[1])
-  },[midiDevice])
+  }, [midiDevice])
 
   useEffect(() => {
     loopTime.current = 60000 / bpm / 4
@@ -49,7 +61,7 @@ export default function Home() {
   }, [trigs]);
 
   useEffect(() => {
-    if(currentTrigRef.current!==-1)playNotes()
+    if (currentTrigRef.current !== -1) playNotes()
   }, [currentTrigRef.current])
 
   useEffect(() => {
@@ -121,6 +133,12 @@ export default function Home() {
     setBpm(newVal)
   };
 
+  const handleRunning = (e) => {
+    if (e.target === e.currentTarget) {
+      setRunning((prev) => !prev)
+    }
+  }
+
   const shiftTrigsLeft = () => {
     setTrigs((prevStates) => {
       const newTrigStates = [...prevStates];
@@ -161,12 +179,6 @@ export default function Home() {
     }
     if (cc.val != null) {
       channel?.sendControlChange(127, cc.val)
-    }
-  }
-
-  const handleRunning = (e) => {
-    if (e.target === e.currentTarget) {
-      setRunning(!running)
     }
   }
 
