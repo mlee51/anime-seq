@@ -1,3 +1,4 @@
+//@ts-nocheck
 export default function Pitch({id, pitch, handleWheel, duration, handleDurationWheel }) {
 
     const calculateBackgroundColor = (pitch) => {

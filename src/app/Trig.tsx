@@ -5,7 +5,7 @@ import AddMenu from './AddMenu';
 import xIcon from '../../public/icons/x-mark.svg'
 import Image from 'next/image'
 
-export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, cc, handleCCOn, handleDuration, duration }) {
+export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, handleCCChannel, cc, handleCCOn, handleDuration, duration }) {
     const [isDragging, setIsDragging] = useState<false>(false);
     const [initialTouch, setInitialTouch] = useState<number>(0);
     const [hovering, setHovering] = useState<boolean>(false)
@@ -73,6 +73,12 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
         handleDuration(id, newVal)
     };
 
+    const handleCCChannelWheel = (e) => {
+        let newVal = cc.chan - e.deltaY / 100;
+        newVal = Math.min(127, Math.max(0, newVal));
+        handleCCChannel(id, { ...cc, chan: newVal });
+    };
+
     const handleCCWheel = (e) => {
         let newVal = cc.val - e.deltaY / 100;
         newVal = Math.min(127, Math.max(0, newVal));
@@ -135,20 +141,27 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                     id={i}
                     style={{ backgroundColor: calculateBackgroundColor(pitch[i]) }}
                     className="select-none w-14 h-14 relative text-off font-extrabold rounded-md mt-2 hover:border">
-                    {hovering && <div onClick={() => deletePitch(i)} className='absolute pl-1 pt-1.5 left-0 w-4 text-xs mix-blend-difference opacity-80'><Image src={xIcon} alt='Delete Pitch' /></div>}
+                    {hovering && <div
+                        onClick={() => deletePitch(i)}
+                        className='absolute pl-1 pt-1.5 left-0 w-4 text-xs mix-blend-difference opacity-80'>
+                        <Image src={xIcon} alt='Delete Pitch' />
+                    </div>}
                     <div onWheel={handleDurationWheel} className='absolute pr-1 pt-1 right-0 text-xs mix-blend-difference'>{duration}</div>
-                    <div className='flex h-full justify-center items-center' onWheel={(e) => handleWheel(e, i)}>{pitch[i]}</div>
+                    <div
+                        className='flex h-full justify-center items-center'
+                        onWheel={(e) => handleWheel(e, i)}>
+                        {pitch[i]}
+                    </div>
                     <div className='absolute pl-1 pt-b bottom-0 left-0 text-xs mix-blend-difference'>{getPitchForKey(pitch[i])}</div>
                 </div>))}
+                {/*CC LOGIC */}
                 {cc.on && <div
-                    style={{ backgroundColor: calculateBackgroundColor(cc.val) }}
-                    className='mt-2 rounded-[20px] rounded-tl-md hover:border'>
-                    <div
-                        onClick={() => { handleCCOn(id, !cc.on) }}
-                        className='text-sm mx-auto text-off font-semibold text-center w-10 h-6 select-none  hover:opacity-20 py-1'
-                        title="Delete"
+                    style={{ backgroundColor: calculateBackgroundColor(cc.val + cc.chan) }}
+                    className='mt-2 rounded-[20px] rounded-tl-md hover:border'>{hovering && <div onClick={() => { handleCCOn(id, !cc.on) }} className='absolute pl-0.5 pt-1.5  w-4 text-xs mix-blend-difference opacity-80'><Image src={xIcon} alt='Delete Pitch' /></div>}
+                    <div onWheel={handleCCChannelWheel}
+                        className='text-sm mx-auto text-off font-semibold text-center w-10 h-6 select-none py-1'
                     >
-                        127
+                        {cc.chan}
                     </div>
                     <div
                         onWheel={handleCCWheel}

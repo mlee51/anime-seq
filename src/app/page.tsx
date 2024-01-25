@@ -16,7 +16,7 @@ export default function Home() {
   const [channel, setChannel] = useState<any>(null);
   const [output, setOutput] = useState<any>(null);
   const [running, setRunning] = useState<boolean>(false);
-  const [trigs, setTrigs] = useState(Array(16).fill({ on: false, pitch: [], duration: 1, cc: { on: false, val: null } }));
+  const [trigs, setTrigs] = useState(Array(16).fill({ on: false, pitch: [], duration: 1, cc: { chan: 0, on: false, val: null } }));
   const [currentTrig, setCurrentTrig] = useState<number>(0)
   const trigsRef = useRef(trigs);
   const currentTrigRef = useRef(currentTrig)
@@ -107,8 +107,16 @@ export default function Home() {
       return newTrigStates;
     });
     // if (!running) {
-      channel.sendControlChange(127, ccVal)
+      channel.sendControlChange(trigs[id].cc.chan, ccVal)
     // }
+  }
+
+  const handleCCChannel = (id: number, e: any) => {
+    setTrigs((prevStates) => {
+      const newTrigStates = [...prevStates];
+      newTrigStates[id] = { ...newTrigStates[id], cc: { ...newTrigStates[id]?.cc, chan: e.chan } }
+      return newTrigStates;
+    });
   }
 
   const handleCCOn = (id: number, e: boolean) => {
@@ -164,7 +172,7 @@ export default function Home() {
       lastPitch.current = pitch
     }
     if (cc.val != null) {
-      channel?.sendControlChange(127, cc.val)
+      channel?.sendControlChange(cc.chan, cc.val)
     }
   }
 
@@ -204,6 +212,7 @@ export default function Home() {
               key={index}
               handleTrigs={handleTrigs}
               handlePitch={handlePitch}
+              handleCCChannel={handleCCChannel}
               handleCC={handleCC}
               handleCCOn={handleCCOn}
               handleDuration={handleDuration}
