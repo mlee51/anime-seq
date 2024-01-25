@@ -5,7 +5,7 @@ import AddMenu from './AddMenu';
 import xIcon from '../../public/icons/x-mark.svg'
 import Image from 'next/image'
 
-export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, handleCCChannel, cc, handleCCOn, handleDuration, duration }) {
+export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, cc, handleCreateCC,handleLearnCC, handleDuration, duration }) {
     const [isDragging, setIsDragging] = useState<false>(false);
     const [initialTouch, setInitialTouch] = useState<number>(0);
     const [hovering, setHovering] = useState<boolean>(false)
@@ -73,17 +73,28 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
         handleDuration(id, newVal)
     };
 
-    const handleCCChannelWheel = (e) => {
-        let newVal = cc.chan - e.deltaY / 100;
-        newVal = Math.min(127, Math.max(0, newVal));
-        handleCCChannel(id, { ...cc, chan: newVal });
+    const handleCCChannelWheel = (e, i) => {
+        let newChan = cc[i].chan - e.deltaY / 100;
+        newChan = Math.min(127, Math.max(0, newChan));
+        let newArray = cc
+        newArray[i].chan = newChan
+        handleCC(id, newArray);
     };
 
-    const handleCCWheel = (e) => {
-        let newVal = cc.val - e.deltaY / 100;
+    const handleCCWheel = (e, i) => {
+        let newVal = cc[i].val - e.deltaY / 100;
         newVal = Math.min(127, Math.max(0, newVal));
-        handleCC(id, { ...cc, val: newVal });
+        let newArray = cc
+        newArray[i].val = newVal
+        handleCC(id, newArray);
+        handleLearnCC(id,i)
     };
+
+    const removeCC = (i) => {
+        let newArray = cc.filter((_, index) => index !== i)
+
+        handleCC(id, newArray);
+    }
 
     const calculateBackgroundColor = (pitch) => {
         // Map pitch to a color based on your specific criteria
@@ -104,7 +115,7 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
         return `${pitchMap[pitchNumber]}${octave}`;
     }
     const createCC = () => {
-        handleCCOn(id, !cc.on)
+        handleCreateCC(id)
     }
 
     const createTrig = () => {
@@ -155,20 +166,24 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                     <div className='absolute pl-1 pt-b bottom-0 left-0 text-xs mix-blend-difference'>{getPitchForKey(pitch[i])}</div>
                 </div>))}
                 {/*CC LOGIC */}
-                {cc.on && <div
-                    style={{ backgroundColor: calculateBackgroundColor(cc.val + cc.chan) }}
-                    className='mt-2 rounded-[20px] rounded-tl-md hover:border'>{hovering && <div onClick={() => { handleCCOn(id, !cc.on) }} className='absolute pl-0.5 pt-1.5  w-4 text-xs mix-blend-difference opacity-80'><Image src={xIcon} alt='Delete Pitch' /></div>}
-                    <div onWheel={handleCCChannelWheel}
-                        className='text-sm mx-auto text-off font-semibold text-center w-10 h-6 select-none py-1'
-                    >
-                        {cc.chan}
-                    </div>
+                {cc && cc.map((_, index) => (
                     <div
-                        onWheel={handleCCWheel}
-                        className="flex flex-col mx-auto items-center justify-center select-none w-10 h-8  text-off font-extrabold ">
-                        {cc.val}
+                        key={index}
+                        id={index}
+                        style={{ backgroundColor: calculateBackgroundColor(cc[index].val + cc[index].chan) }}
+                        className='mt-2 rounded-[20px] rounded-tl-md hover:border'>{hovering && <div onClick={() => removeCC(index)} className='absolute pl-0.5 pt-1.5  w-4 text-xs mix-blend-difference opacity-80'><Image src={xIcon} alt='Delete Pitch' /></div>}
+                        <div onWheel={(e) => handleCCChannelWheel(e, index)}
+                            className='text-sm mx-auto text-off font-semibold text-center w-10 h-6 select-none py-1'
+                        >
+                            {cc[index].chan}
+                        </div>
+                        <div
+                            onWheel={(e) => handleCCWheel(e, index)}
+                            className="flex flex-col mx-auto items-center justify-center select-none w-10 h-8  text-off font-extrabold ">
+                            {cc[index].val}
+                        </div>
                     </div>
-                </div>}
+                ))}
                 {hovering && <AddMenu createCC={createCC} createTrig={createTrig} />}
             </div>
         </>

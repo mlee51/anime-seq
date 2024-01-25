@@ -16,7 +16,7 @@ export default function Home() {
   const [channel, setChannel] = useState<any>(null);
   const [output, setOutput] = useState<any>(null);
   const [running, setRunning] = useState<boolean>(false);
-  const [trigs, setTrigs] = useState(Array(16).fill({ on: false, pitch: [], duration: 1, cc: { chan: 0, on: false, val: null } }));
+  const [trigs, setTrigs] = useState(Array(16).fill({ on: false, pitch: [], duration: 1, cc: [] }));
   const [currentTrig, setCurrentTrig] = useState<number>(0)
   const trigsRef = useRef(trigs);
   const currentTrigRef = useRef(currentTrig)
@@ -31,14 +31,14 @@ export default function Home() {
       .then(() => console.log("WebMidi enabled!"))
       .catch((err) => alert(err))
       .finally(() => {
-       if(WebMidi.outputs.length)setMidiDevice(WebMidi.outputs[0])
+        if (WebMidi.outputs.length) setMidiDevice(WebMidi.outputs[0])
       });
   }, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     setOutput(midiDevice)
     setChannel(midiDevice?.channels[1])
-  },[midiDevice])
+  }, [midiDevice])
 
   useEffect(() => {
     loopTime.current = 60000 / bpm / 4
@@ -49,7 +49,7 @@ export default function Home() {
   }, [trigs]);
 
   useEffect(() => {
-    if(currentTrigRef.current!==-1)playNotes()
+    if (currentTrigRef.current !== -1) playNotes()
   }, [currentTrigRef.current])
 
   useEffect(() => {
@@ -75,9 +75,13 @@ export default function Home() {
     setTrigs((prevStates) => {
       const newTrigStates = [...prevStates];
       let newPitches = []
-      if(newTrigStates[id].pitch.length<1){ newPitches.push(36)}
-      else{newPitches = newTrigStates[id].pitch}
-      newTrigStates[id] = { ...newTrigStates[id], on: !newTrigStates[id].on, pitch:  newPitches }
+      if (newTrigStates[id].pitch.length < 1) {
+        newPitches.push(36)
+      }
+      else {
+        newPitches = newTrigStates[id].pitch
+      }
+      newTrigStates[id] = { ...newTrigStates[id], on: !newTrigStates[id].on, pitch: newPitches }
       return newTrigStates;
     });
   };
@@ -99,34 +103,32 @@ export default function Home() {
     });
   }
 
-  const handleCC = (id: number, e: any) => {
-    const ccVal = parseInt(e.val)
+  const handleCC = (id: number, e: Array) => {
     setTrigs((prevStates) => {
       const newTrigStates = [...prevStates];
-      newTrigStates[id] = { ...newTrigStates[id], cc: { ...newTrigStates[id]?.cc, val: e.val } }
-      return newTrigStates;
-    });
-    // if (!running) {
-      channel.sendControlChange(trigs[id].cc.chan, ccVal)
-    // }
-  }
-
-  const handleCCChannel = (id: number, e: any) => {
-    setTrigs((prevStates) => {
-      const newTrigStates = [...prevStates];
-      newTrigStates[id] = { ...newTrigStates[id], cc: { ...newTrigStates[id]?.cc, chan: e.chan } }
+      newTrigStates[id].cc = e
       return newTrigStates;
     });
   }
 
-  const handleCCOn = (id: number, e: boolean) => {
+  const handleLearnCC = (id: number, index: number) => {
+    channel.sendControlChange(trigs[id].cc[index].chan, trigs[id].cc[index].val)
+  }
+
+  const handleCreateCC = (id: number) => {
     setTrigs((prevStates) => {
       const newTrigStates = [...prevStates];
-      if (e) newTrigStates[id] = { ...newTrigStates[id], cc: { ...newTrigStates[id]?.cc, on: e } }
-      else newTrigStates[id] = { ...newTrigStates[id], cc: { ...newTrigStates[id]?.cc, on: e, val: null } }
+      if (newTrigStates[id].cc.length < 1) {
+        newTrigStates[id] = { ...newTrigStates[id], cc: [...newTrigStates[id].cc, { chan: 0, on: true, val: 0 }] }
+      } else {
+        const length = newTrigStates[id].cc.length
+        const lastCC = newTrigStates[id].cc[length - 1]
+        newTrigStates[id] = { ...newTrigStates[id], cc: [...newTrigStates[id].cc, { chan: lastCC.chan + 1, on: true, val: 0 }] }
+      }
       return newTrigStates;
     });
   }
+
   const handleBpmWheel = (e) => {
     let newVal = bpm - e.deltaY / 100;
     newVal = Math.min(300, Math.max(1, newVal));
@@ -171,9 +173,14 @@ export default function Home() {
       channel?.playNote(pitch, { time: WebMidi.time, duration: loopTime.current * duration, attack: WebMidi.defaults.attack, release: WebMidi.defaults.release })
       lastPitch.current = pitch
     }
-    if (cc.val != null) {
-      channel?.sendControlChange(cc.chan, cc.val)
-    }
+    cc.forEach((message) => {
+      if (message.val != null) {
+        channel?.sendControlChange(message.chan, message.val)
+      }
+    })
+
+
+
   }
 
   const handleRunning = (e) => {
@@ -212,9 +219,9 @@ export default function Home() {
               key={index}
               handleTrigs={handleTrigs}
               handlePitch={handlePitch}
-              handleCCChannel={handleCCChannel}
               handleCC={handleCC}
-              handleCCOn={handleCCOn}
+              handleCreateCC={handleCreateCC}
+              handleLearnCC={handleLearnCC}
               handleDuration={handleDuration}
               duration={trigs[index].duration}
               pitch={trigs[index].pitch}
