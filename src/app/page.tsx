@@ -16,7 +16,7 @@ export default function Home() {
   const [channel, setChannel] = useState<any>(null);
   const [output, setOutput] = useState<any>(null);
   const [running, setRunning] = useState<boolean>(false);
-  const [trigs, setTrigs] = useState(Array(16).fill({ on: false, pitch: 36, duration: 1, cc: { on: false, val: null } }));
+  const [trigs, setTrigs] = useState(Array(16).fill({ on: false, pitch: [], duration: 1, cc: { on: false, val: null } }));
   const [currentTrig, setCurrentTrig] = useState<number>(0)
   const trigsRef = useRef(trigs);
   const currentTrigRef = useRef(currentTrig)
@@ -74,15 +74,19 @@ export default function Home() {
   const handleTrigs = (id: number) => {
     setTrigs((prevStates) => {
       const newTrigStates = [...prevStates];
-      newTrigStates[id] = { ...newTrigStates[id], on: !newTrigStates[id].on }
+      let newPitches = []
+      if(newTrigStates[id].pitch.length<1){ newPitches.push(36)}
+      else{newPitches = newTrigStates[id].pitch}
+      newTrigStates[id] = { ...newTrigStates[id], on: !newTrigStates[id].on, pitch:  newPitches }
       return newTrigStates;
     });
   };
 
-  const handlePitch = (id: number, e: string) => {
+  const handlePitch = (id: number, value: Array) => {
     setTrigs((prevStates) => {
       const newTrigStates = [...prevStates];
-      newTrigStates[id] = { ...newTrigStates[id], pitch: parseInt(e) }
+      // const newVal = parseInt(value)
+      newTrigStates[id] = { ...newTrigStates[id], pitch: value }
       return newTrigStates;
     });
   }
@@ -102,9 +106,9 @@ export default function Home() {
       newTrigStates[id] = { ...newTrigStates[id], cc: { ...newTrigStates[id]?.cc, val: e.val } }
       return newTrigStates;
     });
-    if (!running) {
+    // if (!running) {
       channel.sendControlChange(127, ccVal)
-    }
+    // }
   }
 
   const handleCCOn = (id: number, e: boolean) => {
@@ -214,7 +218,7 @@ export default function Home() {
             <Image src={rightIcon} alt="Shift Right" />
           </button>
         </main >
-        <div className="pointer-events-none justify-between mb-10 select-none">
+        <div className="fixed pointer-events-none justify-between mb-10 select-none bottom-0">
           {running ? <Image width={200} src={pauseIcon} alt="pause" /> : <Image width={200} src={playIcon} alt="play" />}
         </div>
       </div>

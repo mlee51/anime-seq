@@ -1,12 +1,15 @@
 //@ts-nocheck
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import plusIcon from '../../public/icons/plus.svg'
+
+import AddMenu from './AddMenu';
+import xIcon from '../../public/icons/x-mark.svg'
+import Image from 'next/image'
 
 export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, cc, handleCCOn, handleDuration, duration }) {
     const [isDragging, setIsDragging] = useState<false>(false);
     const [initialTouch, setInitialTouch] = useState<number>(0);
     const [hovering, setHovering] = useState<boolean>(false)
+
 
     const handleMouseDown = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -41,6 +44,7 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
     };
 
 
+
     useEffect(() => {
         // Add event listener when the component mounts
         window.addEventListener('mousemove', handleMouseMove);
@@ -53,18 +57,20 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
             window.removeEventListener('mouseup', handleMouseUp);
             window.removeEventListener('mouseleave', handleMouseLeave);
         };
-    }, [isDragging, initialTouch, pitch, handlePitch]); 
+    }, [isDragging, initialTouch, pitch, handlePitch]);
 
-    const handleWheel = (e) => {
-        let newVal = pitch - e.deltaY / 100; 
+    const handleWheel = (e, i) => {
+        let newVal = pitch[i] - e.deltaY / 100;
         newVal = Math.min(127, Math.max(0, newVal));
-        handlePitch(id, newVal);
+        let newArray = [...pitch]
+        newArray[i] = newVal
+        handlePitch(id, newArray);
     };
 
     const handleDurationWheel = (e) => {
-        let newVal = duration - e.deltaY / 100; 
+        let newVal = duration - e.deltaY / 100;
         newVal = Math.min(16, Math.max(1, newVal));
-        handleDuration(id,newVal)
+        handleDuration(id, newVal)
     };
 
     const handleCCWheel = (e) => {
@@ -75,9 +81,45 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
 
     const calculateBackgroundColor = (pitch) => {
         // Map pitch to a color based on your specific criteria
-        const hue = Math.round((pitch) / (127*0.3) * 360); // Example mapping to the hue scale
-        return `hsl(${hue}, 85%, 68%)`; // Construct an HSL color based on the hue
+        const hue = Math.round((pitch) / (127 * 0.3) * 360); // Example mapping to the hue scale
+        return `hsl(${hue}, 80%, 70%)`; // Construct an HSL color based on the hue
     };
+
+    function getPitchForKey(midiValue: number): string | null {
+        if (midiValue < 1 || midiValue > 127) {
+            // Handle out-of-range values
+            return null;
+        }
+
+        const pitchNumber = (midiValue) % 12;
+        const octave = Math.floor((midiValue) / 12) - 2;
+
+        const pitchMap = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        return `${pitchMap[pitchNumber]}${octave}`;
+    }
+    const createCC = () => {
+        handleCCOn(id, !cc.on)
+    }
+
+    const createTrig = () => {
+        if (!trig) {
+            handleTrigs(id);
+        } else {
+            const newPitches = pitch
+            const startingPitch = pitch.length < 1 ? 20 : pitch[pitch.length - 1] + 1
+            newPitches.push(startingPitch)
+            handlePitch(id, newPitches)
+        }
+    }
+
+    const deletePitch = (index) => {
+        if (pitch.length !== 1) {
+            let newPitches = pitch.filter((_, i) => i !== index)
+            handlePitch(id, newPitches)
+        } else {
+            handleTrigs(id);
+        }
+    }
 
     return (
         <>
@@ -88,15 +130,19 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                     onClick={handleClick}
                     className={(currentTrig === id ? 'bg-current' : trig ? 'bg-trig' : 'bg-off') + ' w-14 h-14 rounded-md hover:bg-highlight'}>
                 </div>
-                {trig && <div
-                    style={{ backgroundColor: calculateBackgroundColor(pitch) }}
+                {trig && pitch.map((_, i) => (<div
+                    key={i}
+                    id={i}
+                    style={{ backgroundColor: calculateBackgroundColor(pitch[i]) }}
                     className="select-none w-14 h-14 relative text-off font-extrabold rounded-md mt-2 hover:border">
-                        <div onWheel={handleDurationWheel} className='absolute pr-1 pt-1 right-0 text-xs'>{duration}</div>
-                    <div className='flex h-full justify-center items-center' onWheel={handleWheel}>{pitch}</div>
-                </div>}
+                    {hovering && <div onClick={() => deletePitch(i)} className='absolute pl-1 pt-1.5 left-0 w-4 text-xs mix-blend-difference opacity-80'><Image src={xIcon} alt='Delete Pitch' /></div>}
+                    <div onWheel={handleDurationWheel} className='absolute pr-1 pt-1 right-0 text-xs mix-blend-difference'>{duration}</div>
+                    <div className='flex h-full justify-center items-center' onWheel={(e) => handleWheel(e, i)}>{pitch[i]}</div>
+                    <div className='absolute pl-1 pt-b bottom-0 left-0 text-xs mix-blend-difference'>{getPitchForKey(pitch[i])}</div>
+                </div>))}
                 {cc.on && <div
                     style={{ backgroundColor: calculateBackgroundColor(cc.val) }}
-                    className='mt-2 rounded-[15px] rounded-t-md  hover:border'>
+                    className='mt-2 rounded-[20px] rounded-tl-md hover:border'>
                     <div
                         onClick={() => { handleCCOn(id, !cc.on) }}
                         className='text-sm mx-auto text-off font-semibold text-center w-10 h-6 select-none  hover:opacity-20 py-1'
@@ -110,11 +156,7 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                         {cc.val}
                     </div>
                 </div>}
-                {hovering && <div
-                    onClick={() => { handleCCOn(id, !cc.on) }}
-                    className="w-10 h-10 mx-auto select-none rounded-lg mt-2 p-4 bg-off opacity-25">
-                    <Image src={plusIcon} alt="pause"/>
-                </div>}
+                {hovering && <AddMenu createCC={createCC} createTrig={createTrig} />}
             </div>
         </>
     );
