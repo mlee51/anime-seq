@@ -60,7 +60,7 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
     }, [isDragging, initialTouch, pitch, handlePitch]);
 
     const handleWheel = (e, i) => {
-        let scrollVal = Math.abs(e.deltaY) > 1? e.deltaY/100 : e.deltaY
+        let scrollVal = Math.sign(e.deltaY)
         let newVal = pitch[i] - scrollVal;
         newVal = Math.min(127, Math.max(0, newVal));
         let newArray = [...pitch]
@@ -69,14 +69,15 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
     };
 
     const handleDurationWheel = (e) => {
-        let scrollVal = Math.abs(e.deltaY) > 1? e.deltaY/100 : e.deltaY
+        let scrollVal = Math.sign(e.deltaY)
         let newVal = duration - scrollVal;
         newVal = Math.min(16, Math.max(1, newVal));
         handleDuration(id, newVal)
     };
 
     const handleCCChannelWheel = (e, i) => {
-        let newChan = cc[i].chan - e.deltaY / 100;
+        let scrollVal = Math.sign(e.deltaY)
+        let newChan = cc[i].chan - scrollVal;
         newChan = Math.min(127, Math.max(0, newChan));
         let newArray = cc
         newArray[i].chan = newChan
@@ -84,7 +85,7 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
     };
 
     const handleCCWheel = (e, i) => {
-        let scrollVal = Math.abs(e.deltaY) > 1? e.deltaY/100 : e.deltaY
+        let scrollVal = Math.sign(e.deltaY)
         let newVal = cc[i].val - scrollVal;
         newVal = Math.min(127, Math.max(0, newVal));
         let newArray = cc
