@@ -52,7 +52,8 @@ export default function Home() {
 
 
   const handleBpmWheel = (e) => {
-    let newVal = bpm - e.deltaY / 100;
+    let scrollVal = Math.sign(e.deltaY)
+    let newVal = bpm - scrollVal
     newVal = Math.min(300, Math.max(1, newVal));
     setBpm(newVal)
   };
@@ -87,7 +88,7 @@ export default function Home() {
       <div onClick={handleRunning} className="min-h-screen flex flex-col items-center bg-background">
         <div
           title='Scroll to change BPM'
-          className="top-10  text-[#636e72] font-extrabold text-8xl my-4 p-4 select-none hover:text-trig"
+          className="top-10 text-[#636e72] font-extrabold text-8xl my-4 p-4 select-none hover:text-trig"
           onWheel={handleBpmWheel}>
           {bpm}
         </div>
