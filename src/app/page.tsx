@@ -91,7 +91,7 @@ export default function Home() {
           onWheel={handleBpmWheel}>
           {bpm}
         </div>
-        {channels?.slice(0,3).map((_,index)=>(<Track channel={channels[index]} handleRunning={handleRunning} running={running} bpm={bpm}/>))}
+        {channels?.slice(0,3).map((_,index)=>(<Track key={index} channel={channels[index]} handleRunning={handleRunning} running={running} bpm={bpm}/>))}
         
         <div className="fixed pointer-events-none right-0 mb-10 select-none bottom-0">
           {running ? <Image width={200} src={pauseIcon} alt="pause" /> : <Image width={200} src={playIcon} alt="play" />}
