@@ -5,7 +5,7 @@ import AddMenu from './AddMenu';
 import xIcon from '../../public/icons/x-mark.svg'
 import Image from 'next/image'
 
-export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, cc, handleCreateCC,handleLearnCC, handleDuration, duration }) {
+export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, cc, ccLabelMap, setCCLabelMap, handleCreateCC, handleLearnCC, handleDuration, duration, lastKnob }) {
     const [isDragging, setIsDragging] = useState<false>(false);
     const [initialTouch, setInitialTouch] = useState<number>(0);
     const [hovering, setHovering] = useState<boolean>(false)
@@ -60,15 +60,17 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
     }, [isDragging, initialTouch, pitch, handlePitch]);
 
     const handleWheel = (e, i) => {
-        let newVal = pitch[i] - e.deltaY / 100;
+        let scrollVal = Math.abs(e.deltaY) > 1? e.deltaY/100 : e.deltaY
+        let newVal = pitch[i] - scrollVal;
         newVal = Math.min(127, Math.max(0, newVal));
         let newArray = [...pitch]
         newArray[i] = newVal
-        handlePitch(id, newArray);
+        handlePitch(id, newArray, newVal, duration);
     };
 
     const handleDurationWheel = (e) => {
-        let newVal = duration - e.deltaY / 100;
+        let scrollVal = Math.abs(e.deltaY) > 1? e.deltaY/100 : e.deltaY
+        let newVal = duration - scrollVal;
         newVal = Math.min(16, Math.max(1, newVal));
         handleDuration(id, newVal)
     };
@@ -82,12 +84,13 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
     };
 
     const handleCCWheel = (e, i) => {
-        let newVal = cc[i].val - e.deltaY / 100;
+        let scrollVal = Math.abs(e.deltaY) > 1? e.deltaY/100 : e.deltaY
+        let newVal = cc[i].val - scrollVal;
         newVal = Math.min(127, Math.max(0, newVal));
         let newArray = cc
         newArray[i].val = newVal
         handleCC(id, newArray);
-        handleLearnCC(id,i)
+        handleLearnCC(id, i)
     };
 
     const removeCC = (i) => {
@@ -123,19 +126,34 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
             handleTrigs(id);
         } else {
             const newPitches = pitch
-            const startingPitch = pitch.length < 1 ? 20 : pitch[pitch.length - 1] + 1
+            const startingPitch = lastKnob
             newPitches.push(startingPitch)
-            handlePitch(id, newPitches)
+            handlePitch(id, newPitches, lastKnob)
         }
     }
 
     const deletePitch = (index) => {
         if (pitch.length !== 1) {
             let newPitches = pitch.filter((_, i) => i !== index)
-            handlePitch(id, newPitches)
+            handlePitch(id, newPitches,lastKnob)
         } else {
             handleTrigs(id);
         }
+    }
+
+    const handleCCLabel = (e, i) => {
+        const { value } = e.target
+        // if (value == '') {
+        //     setCCLabelMap(prev => {
+        //         const newArray = prev
+        //         delete newArray[i]
+        //         return(newArray)
+        //     })
+        // } else {
+        setCCLabelMap(prev => (
+            { ...prev, [i]: value }
+        ))
+        // }
     }
 
     return (
@@ -163,7 +181,11 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                         onWheel={(e) => handleWheel(e, i)}>
                         {pitch[i]}
                     </div>
-                    <div className='absolute pl-1 pt-b bottom-0 left-0 text-xs mix-blend-difference'>{getPitchForKey(pitch[i])}</div>
+                    <div 
+                    className='absolute pl-1 pt-b bottom-0 left-0 text-xs mix-blend-difference'
+                    onWheel={(e) => handleWheel(e, i)}>
+                        {getPitchForKey(pitch[i])}
+                        </div>
                 </div>))}
                 {/*CC LOGIC */}
                 {cc && cc.map((_, index) => (
@@ -172,11 +194,13 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                         id={index}
                         style={{ backgroundColor: calculateBackgroundColor(cc[index].val + cc[index].chan) }}
                         className='mt-2 rounded-[20px] rounded-tl-md hover:border'>{hovering && <div onClick={() => removeCC(index)} className='absolute pl-0.5 pt-1.5  w-4 text-xs mix-blend-difference opacity-80'><Image src={xIcon} alt='Delete Pitch' /></div>}
-                        <div onWheel={(e) => handleCCChannelWheel(e, index)}
-                            className='text-sm mx-auto text-off font-semibold text-center w-10 h-6 select-none py-1'
-                        >
-                            {cc[index].chan}
-                        </div>
+                        <input
+                            onChange={(e) => handleCCLabel(e, cc[index].chan)}
+                            placeholder={cc[index].chan}
+                            value={ccLabelMap.hasOwnProperty(cc[index].chan) ? ccLabelMap[cc[index].chan] : cc[index].chan}
+                            onWheel={(e) => handleCCChannelWheel(e, index)}
+                            className='text-sm bg-transparent flex mx-auto text-off placeholder:text-off font-semibold text-center w-10 h-6 select-none py-1 focus:outline-none'
+                        />
                         <div
                             onWheel={(e) => handleCCWheel(e, index)}
                             className="flex flex-col mx-auto items-center justify-center select-none w-10 h-8  text-off font-extrabold ">
