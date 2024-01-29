@@ -4,76 +4,14 @@ import React, { useState, useEffect } from 'react';
 import AddMenu from './AddMenu';
 import xIcon from '../../public/icons/x-mark.svg'
 import Image from 'next/image'
+import Value from './Value';
 
 export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, currentTrig, handleCC, cc, ccLabelMap, setCCLabelMap, handleCreateCC, handleLearnCC, handleDuration, duration, lastKnob }) {
-    const [isDragging, setIsDragging] = useState<false>(false);
-    const [initialTouch, setInitialTouch] = useState<number>(0);
     const [hovering, setHovering] = useState<boolean>(false)
-
-
-    const handleMouseDown = (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const center = (rect.left + rect.right) / 2; // Calculate the horizontal center
-        setInitialTouch(center);
-        setIsDragging(true);
-        setInitialTouch(e.clientX);
-    };
-
-    const handleMouseMove = (e) => {
-        if (isDragging) {
-            const offsetX = e.clientX - initialTouch;
-            const percentage = (offsetX / window.innerWidth) * window.innerWidth;
-            let newVal = pitch + percentage;
-            // Limit pitch to the range of 0 to 127
-            newVal = Math.min(127, Math.max(0, newVal));
-            handlePitch(id, newVal);
-            console.log(percentage, newVal);
-        }
-    };
-
-    const handleMouseUp = () => {
-        setIsDragging(false);
-    };
 
     const handleClick = () => {
         handleTrigs(id);
     }
-
-    const handleMouseLeave = () => {
-        setIsDragging(false);
-    };
-
-
-
-    useEffect(() => {
-        // Add event listener when the component mounts
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
-        window.addEventListener('mouseleave', handleMouseLeave);
-
-        // Clean up the event listeners when the component unmounts
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-            window.removeEventListener('mouseleave', handleMouseLeave);
-        };
-    }, [isDragging, initialTouch, pitch, handlePitch]);
-
-    const handleWheel = (e, i) => {
-        let scrollVal = Math.sign(e.deltaY)
-        let newVal = pitch[i] - scrollVal;
-        newVal = Math.min(127, Math.max(0, newVal));
-        let newArray = [...pitch]
-        newArray[i] = newVal
-        handlePitch(id, newArray, newVal, duration);
-    };
-
-    const handleDurationWheel = (e) => {
-        let scrollVal = Math.sign(e.deltaY)
-        let newVal = duration - scrollVal;
-        newVal = Math.min(16, Math.max(1, newVal));
-        handleDuration(id, newVal)
-    };
 
     const handleCCChannelWheel = (e, i) => {
         let scrollVal = Math.sign(e.deltaY)
@@ -136,7 +74,7 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
     const deletePitch = (index) => {
         if (pitch.length !== 1) {
             let newPitches = pitch.filter((_, i) => i !== index)
-            handlePitch(id, newPitches,lastKnob)
+            handlePitch(id, newPitches, null)
         } else {
             handleTrigs(id);
         }
@@ -157,6 +95,23 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
         // }
     }
 
+    const handlePitchValue = (value, i) => {
+        let newArray = [...pitch]
+        newArray[i] = value
+        handlePitch(id, newArray, value, duration);
+    }
+
+    const handleDurationValue = (value) => {
+        handleDuration(id, value)
+    };
+
+    const handleCCValue = (value, i) => {
+        let newArray = cc
+        newArray[i].val = value
+        handleCC(id, newArray);
+        handleLearnCC(id, i)
+    };
+
     return (
         <>
             <div className="flex flex-col mx-1"
@@ -176,17 +131,17 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                         className='absolute pl-1 pt-1.5 left-0 w-4 text-xs mix-blend-difference opacity-80'>
                         <Image src={xIcon} alt='Delete Pitch' />
                     </div>}
-                    <div onWheel={handleDurationWheel} className='absolute pr-1 pt-1 right-0 text-xs mix-blend-difference'>{duration}</div>
-                    <div
-                        className='flex h-full justify-center items-center'
-                        onWheel={(e) => handleWheel(e, i)}>
-                        {pitch[i]}
+                    <div className='absolute pr-1 pt-1 right-0 text-xs mix-blend-difference'>
+                        <Value parentValue={duration} setter={handleDurationValue} min={1} max={16} />
                     </div>
-                    <div 
-                    className='absolute pl-1 pt-b bottom-0 left-0 text-xs mix-blend-difference'
-                    onWheel={(e) => handleWheel(e, i)}>
+                    <div className='flex h-full justify-center items-center'>
+                        <Value parentValue={pitch[i]} setter={handlePitchValue} index={i} min={0} max={127} />
+                    </div>
+                    <div
+                        className='absolute pl-1 pt-b bottom-0 left-0 text-xs mix-blend-difference'
+                    >
                         {getPitchForKey(pitch[i])}
-                        </div>
+                    </div>
                 </div>))}
                 {/*CC LOGIC */}
                 {cc && cc.map((_, index) => (
@@ -195,6 +150,7 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                         id={index}
                         style={{ backgroundColor: calculateBackgroundColor(cc[index].val + cc[index].chan) }}
                         className='mt-2 rounded-[20px] rounded-tl-md hover:border'>{hovering && <div onClick={() => removeCC(index)} className='absolute pl-0.5 pt-1.5  w-4 text-xs mix-blend-difference opacity-80'><Image src={xIcon} alt='Delete Pitch' /></div>}
+                        {/*TO-DO: Refactor CC labels to use Value*/}
                         <input
                             onChange={(e) => handleCCLabel(e, cc[index].chan)}
                             placeholder={cc[index].chan}
@@ -203,9 +159,8 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                             className='text-sm bg-transparent flex mx-auto text-off placeholder:text-off font-semibold text-center w-10 h-6 select-none py-1 focus:outline-none'
                         />
                         <div
-                            onWheel={(e) => handleCCWheel(e, index)}
                             className="flex flex-col mx-auto items-center justify-center select-none w-10 h-8  text-off font-extrabold ">
-                            {cc[index].val}
+                            <Value parentValue={cc[index].val} setter={handleCCValue} index={index} min={0} max={127}/>
                         </div>
                     </div>
                 ))}

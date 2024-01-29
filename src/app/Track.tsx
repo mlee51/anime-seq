@@ -10,7 +10,7 @@ import playIcon from '../../public/icons/play.svg'
 import leftIcon from '../../public/icons/leftarrow.svg'
 import rightIcon from '../../public/icons/rightarrow.svg'
 
-export default function Track({channel,handleRunning,running,bpm}) {
+export default function Track({ channel, handleRunning, running, bpm }) {
   const [trigs, setTrigs] = useState(Array(16).fill({ on: false, pitch: [], duration: 1, cc: [] }));
   const [currentTrig, setCurrentTrig] = useState<number>(0)
   const trigsRef = useRef(trigs);
@@ -22,7 +22,7 @@ export default function Track({channel,handleRunning,running,bpm}) {
     // 2: "porta",
     // 3: "wet",
   })
-  const [lastKnob,setLastKnob] = useState(36) ///initially 36
+  const [lastKnob, setLastKnob] = useState(36) ///initially 36
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress, true);
@@ -79,21 +79,23 @@ export default function Track({channel,handleRunning,running,bpm}) {
         newPitches = [lastKnob]//newTrigStates[id].pitch
       }
       newTrigStates[id] = { ...newTrigStates[id], on: !newTrigStates[id].on, pitch: newPitches }
-      
-      if(newTrigStates[id].on)channel.playNote(newPitches,{ time: WebMidi.time, duration: loopTime.current * newTrigStates[id].duration, attack: WebMidi.defaults.attack, release: WebMidi.defaults.release })
+
+      if (newTrigStates[id].on) channel.playNote(newPitches, { time: WebMidi.time, duration: loopTime.current * newTrigStates[id].duration, attack: WebMidi.defaults.attack, release: WebMidi.defaults.release })
       return newTrigStates;
     });
   };
 
-  const handlePitch = (id: number, pitches: Array, value: number, duration: number ) => {
+  const handlePitch = (id: number, pitches: Array, value: number = null, duration: number) => {
     setTrigs((prevStates) => {
       const newTrigStates = [...prevStates];
       // const newVal = parseInt(value)
       newTrigStates[id] = { ...newTrigStates[id], pitch: pitches }
-      setLastKnob(value)
+      if (value !== null) {
+        channel?.playNote(value, { time: WebMidi.time, duration: loopTime.current * duration, attack: WebMidi.defaults.attack, release: WebMidi.defaults.release })
+        setLastKnob(value)
+      }
       return newTrigStates;
     });
-    channel?.playNote(value, { time: WebMidi.time, duration: loopTime.current * duration, attack: WebMidi.defaults.attack, release: WebMidi.defaults.release })
   }
 
   const handleDuration = (id: number, newDuration: number) => {
@@ -172,34 +174,34 @@ export default function Track({channel,handleRunning,running,bpm}) {
 
   return (
     <Suspense>
-        <main onClick={handleRunning} className="flex flex-row items-start justify-around pl-24 pr-24  pt-12 pb-12 rounded-3xl ">{/*bg-[#10191f]*/}
-          <button onClick={shiftTrigsLeft} className="h-14 mr-1 select-none">
-            <Image src={leftIcon} alt="Shift Left" />
-          </button>
-          {trigs.map((_, index) => (
-            <Trig
-              key={index}
-              handleTrigs={handleTrigs}
-              handlePitch={handlePitch}
-              handleCC={handleCC}
-              handleCreateCC={handleCreateCC}
-              handleLearnCC={handleLearnCC}
-              handleDuration={handleDuration}
-              duration={trigs[index].duration}
-              pitch={trigs[index].pitch}
-              cc={trigs[index].cc}
-              ccLabelMap={ccLabelMap}
-              setCCLabelMap={setCCLabelMap}
-              id={index} 
-              trig={trigs[index].on}
-              currentTrig={currentTrig}
-              lastKnob={lastKnob}
-            />
-          ))}
-          <button onClick={shiftTrigsRight} className="h-14 ml-1 select-none">
-            <Image src={rightIcon} alt="Shift Right" />
-          </button>
-        </main >
+      <main onClick={handleRunning} className="flex flex-row items-start justify-around pl-24 pr-24  pt-12 pb-12 rounded-3xl ">{/*bg-[#10191f]*/}
+        <button onClick={shiftTrigsLeft} className="h-14 mr-1 select-none">
+          <Image src={leftIcon} alt="Shift Left" />
+        </button>
+        {trigs.map((_, index) => (
+          <Trig
+            key={index}
+            handleTrigs={handleTrigs}
+            handlePitch={handlePitch}
+            handleCC={handleCC}
+            handleCreateCC={handleCreateCC}
+            handleLearnCC={handleLearnCC}
+            handleDuration={handleDuration}
+            duration={trigs[index].duration}
+            pitch={trigs[index].pitch}
+            cc={trigs[index].cc}
+            ccLabelMap={ccLabelMap}
+            setCCLabelMap={setCCLabelMap}
+            id={index}
+            trig={trigs[index].on}
+            currentTrig={currentTrig}
+            lastKnob={lastKnob}
+          />
+        ))}
+        <button onClick={shiftTrigsRight} className="h-14 ml-1 select-none">
+          <Image src={rightIcon} alt="Shift Right" />
+        </button>
+      </main >
     </Suspense>
   );
 }

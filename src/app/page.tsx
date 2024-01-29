@@ -10,6 +10,7 @@ import playIcon from '../../public/icons/play.svg'
 import leftIcon from '../../public/icons/leftarrow.svg'
 import rightIcon from '../../public/icons/rightarrow.svg'
 import Track from "./Track";
+import Value from "./Value";
 
 export default function Home() {
   const [devices, setDevices] = useState(null)
@@ -50,12 +51,8 @@ export default function Home() {
     }
   };
 
-
-  const handleBpmWheel = (e) => {
-    let scrollVal = Math.sign(e.deltaY)
-    let newVal = bpm - scrollVal
-    newVal = Math.min(300, Math.max(1, newVal));
-    setBpm(newVal)
+  const handleBpm = (value) => {
+    setBpm(value)
   };
 
   const onEnabled = () => {
@@ -88,9 +85,8 @@ export default function Home() {
       <div onClick={handleRunning} className="min-h-screen flex flex-col items-center bg-background">
         <div
           title='Scroll to change BPM'
-          className="top-10 text-[#636e72] font-extrabold text-8xl my-4 p-4 select-none hover:text-trig"
-          onWheel={handleBpmWheel}>
-          {bpm}
+          className="top-10 text-[#636e72] font-extrabold text-8xl my-4 p-4 select-none hover:text-trig">
+          <Value parentValue={bpm} setter={handleBpm} min={1} max={300}/>
         </div>
         {channels?.slice(0,3).map((_,index)=>(<Track key={index} channel={channels[index]} handleRunning={handleRunning} running={running} bpm={bpm}/>))}
         
