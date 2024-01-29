@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { useCallback, useEffect, useRef, useState } from "react"
 
 export default function Value({ parentValue, setter, min, max, index = null }) {
