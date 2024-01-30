@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], weight: "600" });
 
 export const metadata: Metadata = {
-  title: "CLAY",
+  title: "CLAY - midi sequencer",
   description: "midi sculpture sequencer",
 };
 
