@@ -86,7 +86,7 @@ export default function Info() {
                             </tr>
                             <tr className="bg-background">
                                 <td className="border py-2 px-4">Shift Sequence</td>
-                                <td className="border py-2 px-4">Click the left and right arrows to shift a Track's trigs</td>
+                                <td className="border py-2 px-4">Click the left and right arrows to shift a Track&apos;s trigs</td>
                             </tr>
                             <tr className="bg-background">
                                 <td className="border py-2 px-4">Delete Trig</td>
