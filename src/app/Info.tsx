@@ -18,6 +18,13 @@ export default function Info() {
             localStorage.setItem('visitedBefore', true)
         }
     }, []);
+
+    useEffect(() => {
+        if(showMac) setShowWindows(false)
+    },[showMac])
+    useEffect(() => {
+        if(showWindows) setShowMac(false)
+    },[showWindows])
     return (
         <div>
             <button onClick={() => setShowInfo(!showInfo)} className='absolute z-10 m-2'><Image className="w-8" src={qIcon} alt='Open Info' /></button>
@@ -27,11 +34,11 @@ export default function Info() {
                 <p>CLAY is a flexible MIDI sequencer for arranging patterns and songs</p>
                 <button onClick={() => setShowWindows(!showWindows)} className="text-4xl font-bold text-trig">Getting Started on Windows</button>
                 {showWindows && (<ol className="list-decimal w-[49rem]   [&>li]:my-1.5 text-trig">
-                    <li>Install&nbsp;
+                    <li>Install{' '}
                         <a className="underline" href="https://www.tobias-erichsen.de/software/loopmidi.html" target="_blank">
                             loopMIDI
                         </a>
-                        &nbsp;if there is no MIDI output available
+                       {' '}if there is no MIDI output available
                     </li>
                     <li>Open loopMIDI and click the plus icon to create a virtual MIDI port if there are no virtual MIDI ports listed</li>
                     <li>Back in CLAY, click the top right drop down and select your MIDI output device. If none are listed, you can try refreshing</li>

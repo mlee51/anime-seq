@@ -15,7 +15,7 @@ const config: Config = {
       },
       colors: {
         'highlight':'#f83573',
-        'trig':'#cbd3d6',
+        'trig':'#CAD9E8',
         'off':'#2f3640',
         'current': '#60d68d',
         'background':'#485460',
