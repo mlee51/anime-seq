@@ -31,7 +31,7 @@ export default function Info() {
             {showInfo && <div className="flex flex-col gap-y-4 items-start z-10 mt-4 p-10 pt-14 absolute left-0 right-0 mx-auto w-fit bg-background rounded-[20px]">
                 <button onClick={() => setShowInfo(!showInfo)} className='absolute z-10 left-0 top-0 m-2 '><Image src={xIcon} alt='Close Info' /></button>
                 <h1 className="text-4xl font-bold text-trig">What is CLAY?</h1>
-                <p>CLAY is a flexible MIDI sequencer for arranging patterns and songs</p>
+                <p className="text-trig">CLAY is a flexible MIDI sequencer for arranging patterns and songs</p>
                 <button onClick={() => setShowWindows(!showWindows)} className="text-4xl font-bold text-trig">Getting Started on Windows</button>
                 {showWindows && (<ol className="list-decimal w-[49rem]   [&>li]:my-1.5 text-trig">
                     <li>Install{' '}
