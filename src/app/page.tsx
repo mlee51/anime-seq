@@ -11,6 +11,7 @@ import leftIcon from '../../public/icons/leftarrow.svg'
 import rightIcon from '../../public/icons/rightarrow.svg'
 import Track from "./Track";
 import Value from "./Value";
+import Info from "./Info";
 
 export default function Home() {
   const [devices, setDevices] = useState(null)
@@ -68,9 +69,11 @@ export default function Home() {
   }
 
   return (
+    <>
+    <Info/>
     <Suspense>
       <select
-        className="text-off fixed right-0 text-3xl rounded-md m-2 bg-background focus:outline-none"
+        className="text-mid fixed right-0 text-3xl rounded-md m-2 bg-transparent focus:outline-none"
         name="devices"
         id="devices"
         title="Select MIDI Device"
@@ -82,18 +85,19 @@ export default function Home() {
         ))}
       </select>
       <h1 className="fixed text-3xl bottom-0 font-extrabold m-4 text-off inline-flex items-center"><div className="w-12 h-12 bg-off rounded-[20px] rounded-tl-lg mr-2"/>CLAY | midi sequencer</h1>
-      <div onClick={handleRunning} className="min-h-screen flex flex-col items-center bg-background">
+      <div onClick={handleRunning} className="min-h-screen flex flex-col items-center">
         <div
           title='Scroll to change BPM'
-          className="top-10 text-[#636e72] font-extrabold text-8xl my-4 p-4 select-none hover:text-trig">
+          className="top-10 text-mid text-6xl my-4 p-4 select-none hover:text-trig">
           <Value parentValue={bpm} setter={handleBpm} min={1} max={300}/>
         </div>
         {channels?.slice(0,3).map((_,index)=>(<Track key={index} channel={channels[index]} handleRunning={handleRunning} running={running} bpm={bpm}/>))}
         
-        <div className="fixed pointer-events-none right-0 mb-10 select-none bottom-0">
-          {running ? <Image width={200} src={pauseIcon} alt="pause" /> : <Image width={200} src={playIcon} alt="play" />}
+        <div className="fixed pointer-events-none right-0 m-10 select-none bottom-0">
+          {running ? <Image width={100} src={pauseIcon} alt="pause" /> : <Image width={100} src={playIcon} alt="play" />}
         </div>
       </div>
     </Suspense>
+    </>
   );
 }

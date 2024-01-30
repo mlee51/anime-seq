@@ -11,12 +11,13 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 16, 25, 31;
-    --background-end-rgb: 16, 25, 31;
+    --background-start-rgb: 47, 54, 64;
+    --background-end-rgb: 72, 84, 96;
   }
 }
 
 body {
+  color: #dfe6e9;
   overflow: clip;
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(to bottom,

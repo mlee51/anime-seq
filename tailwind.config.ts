@@ -15,10 +15,11 @@ const config: Config = {
       },
       colors: {
         'highlight':'#f83573',
-        'trig':'#dfe6e9',
+        'trig':'#cbd3d6',
         'off':'#2f3640',
         'current': '#60d68d',
         'background':'#485460',
+        'mid':'#636e72',
       }
     },
   },

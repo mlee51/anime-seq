@@ -3,14 +3,14 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import plusIcon from '../../public/icons/plus.svg'
 
-export default function AddMenu({ createCC, createTrig }) {
+export default function AddMenu({ createCC, createTrig, hovering }) {
     const [hoveringAdd, setHoveringAdd] = useState<boolean>(false)
     return (
         <div
             onMouseOver={() => setHoveringAdd(true)}
             onMouseLeave={() => setHoveringAdd(false)}
-
-            className="w-auto p-2 h-auto flex flex-col items-center m-auto mt-2 select-none rounded-lg  bg-off opacity-25">
+            style={{opacity: hovering? 0.25 : 0}}
+            className="w-auto p-2 h-auto flex flex-col items-center m-auto mt-2 select-none rounded-lg  bg-off">
             {hoveringAdd && <><div onClick={() => createTrig()}
                 className="select-none w-8 h-8 text-off font-extrabold rounded-md hover:border mb-2 bg-background" />
                 <div onClick={() => createCC()}

@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], weight: "700" });
 
 export const metadata: Metadata = {
-  title: "anime-seq",
-  description: "animation esque midi sequencer",
+  title: "CLAY",
+  description: "midi sculpture sequencer",
 };
 
 export default function RootLayout({

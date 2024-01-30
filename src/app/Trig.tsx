@@ -164,7 +164,7 @@ export default function Trig({ id, handleTrigs, handlePitch, trig, pitch, curren
                         </div>
                     </div>
                 ))}
-                {hovering && <AddMenu createCC={createCC} createTrig={createTrig} />}
+                {<AddMenu createCC={createCC} createTrig={createTrig} hovering={hovering} />}
             </div>
         </>
     );
