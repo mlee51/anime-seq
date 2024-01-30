@@ -42,7 +42,7 @@ export default function Info() {
                     </li>
                     <li>Open loopMIDI and click the plus icon to create a virtual MIDI port if there are no virtual MIDI ports listed</li>
                     <li>Back in CLAY, click the top right drop down and select your MIDI output device. If none are listed, you can try refreshing</li>
-                    <li>We're all set! Click on an empty square to enter a trig and hit Spacebar to start sending out notes</li>
+                    <li>We&apos;re all set! Click on an empty square to enter a trig and hit Spacebar to start sending out notes</li>
                 </ol>)}
                 <button onClick={() => setShowMac(!showMac)} className="text-4xl font-bold text-trig">Getting Started on Mac</button>
                 {showMac && (<ol className="list-decimal w-[49rem] [&>li]:my-1.5 text-trig">
@@ -52,7 +52,7 @@ export default function Info() {
                     <li>Inside MIDI Studio double click on IAC Driver</li>
                     <li>Make sure Device is online is checked. If there are no ports listed, click on the plus icon to create one. Hit Apply to save changes</li>
                     <li>Back in CLAY, click the top right drop down and select your MIDI output device. If none are listed you can try refreshing</li>
-                    <li>We're all set! Click on an empty square to enter a trig and hit Spacebar to start sending out notes</li>
+                    <li>We&apos;re all set! Click on an empty square to enter a trig and hit Spacebar to start sending out notes</li>
                 </ol>)}
                 <div>
                     <h1 className="text-4xl font-bold mb-4 text-off select-none">Controls</h1>
